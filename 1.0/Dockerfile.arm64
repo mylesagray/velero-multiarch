@@ -12,30 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# VERSION 0.9.4
+# VERSION 1.0.0
 # AUTHOR:         Nicolas Lamirault <nicolas.lamirault@gmail.com>
-# DESCRIPTION:    zeiot/rpi-ark
+# DESCRIPTION:    zeiot/rpi-velero
 
 FROM resin/armv7hf-debian:stretch
 
-LABEL summary="Heptio Ark for ARM64" \
-      description="Heptio Ark for ARM64 devices" \
-      name="zeiot/rpi-ark" \
-      url="https://github.com/zeiot/rpi-ark" \
-      maintainer="Nicolas Lamirault <nicolas.lamirault@gmail.com>"
+LABEL summary="Heptio Velero for ARM64" \
+      description="Heptio Velero for ARM64 devices" \
+      name="mylesagray/rpi-velero" \
+      url="https://github.com/mylesagray/rpi-velero" \
+      maintainer="Myles Gray <mg@mylesgray.com>"
 
-ENV ARK_VERSION 0.9.4
+ENV VELERO_VERSION 1.0.0
 
 RUN [ "cross-build-start" ]
 
-ADD https://github.com/heptio/ark/releases/download/v${ARK_VERSION}/ark-v${ARK_VERSION}-linux-arm64.tar.gz /ark.tgz
+ADD https://github.com/heptio/velero/releases/download/v${VELERO_VERSION}/velero-v${VELERO_VERSION}-linux-arm64.tar.gz /velero.tgz
 
-RUN tar -zxvf /ark.tgz \
-    && rm /ark.tgz \
-    && mv /ark /usr/bin/ark
+RUN tar -zxvf /velero.tgz \
+    && rm /velero.tgz \
+    && mv velero-v${VELERO_VERSION}-linux-arm64/velero /usr/bin/velero
 
 RUN [ "cross-build-end" ]
 
 USER nobody:nobody
 
-ENTRYPOINT ["/usr/bin/ark"]
+ENTRYPOINT ["/usr/bin/velero"]

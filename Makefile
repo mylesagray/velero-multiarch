@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-APP=zeiot
+APP=mylesagray
 
 NAMESPACE=$(APP)
-IMAGE=rpi-ark
+IMAGE=rpi-velero
 
 REGISTRY_IMAGE ?= $(NAMESPACE)/$(IMAGE)
 
@@ -44,7 +44,7 @@ help:
 .PHONY: build
 build:
 	@echo -e "$(OK_COLOR)[$(APP)] build $(REGISTRY_IMAGE):v$(VERSION)-$(arch)$(NO_COLOR)"
-	@$(DOCKER) build -t $(REGISTRY_IMAGE):v${VERSION}-$(arch) $(version) -f $(version)/Dockerfile.$(arch)
+	@$(DOCKER) build --rm -t $(REGISTRY_IMAGE):v${VERSION}-$(arch) $(version) -f $(version)/Dockerfile.$(arch)
 
 .PHONY: run
 run:
