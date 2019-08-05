@@ -15,7 +15,7 @@
 APP=mylesagray
 
 NAMESPACE=$(APP)
-IMAGE=rpi-velero
+IMAGE=velero
 
 REGISTRY_IMAGE ?= $(NAMESPACE)/$(IMAGE)
 
