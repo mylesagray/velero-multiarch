@@ -82,10 +82,9 @@ qemu:
 
 qemu-%:
 	-docker run --rm --privileged multiarch/qemu-user-static:register --reset 
-	cd tmp && \
 	curl -L -o qemu-$*-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0-5/qemu-$*-static.tar.gz && \
 	tar xzf qemu-$*-static.tar.gz && \
-	cp qemu-$*-static ../qemu/
+	mv qemu-$*-static qemu/
 
 wrap:
 	$(foreach arch, $(ARCHS), make wrap-$(arch);)
@@ -106,6 +105,6 @@ clean:
 	-docker rmi -f $$(docker images -q -f dangling=true)
 	-$(foreach arch, $(ARCHS), docker rmi -f $(arch)/$(BASE_IMAGE):$(BASE_IMAGE_TAG);)
 	-$(foreach arch, $(ARCHS), docker rmi -f $(BASE_IMAGE):$(arch);)
-	-rm -rf qemu/qemu-*-static
+	-rm -rf qemu-*-static.tar.gz qemu/qemu-*-static
 	-docker rmi -f multiarch/qemu-user-static:register
 	-docker rmi -f $$(docker images --format '{{.Repository}}:{{.Tag}}' | grep $(REGISTRY_IMAGE))
