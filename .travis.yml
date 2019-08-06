@@ -20,8 +20,8 @@ jobs:
         - make qemu
         - make wrap
         - make build
-    - stage: push
-      script:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         - make push
+    - stage: manifest
+      script:
         - make manifest
