@@ -18,8 +18,8 @@
 ARG BASE
 FROM ${BASE}
 
-LABEL summary="Multiarch Heptio Velero" \
-    description="Multiarch images for Heptio Velero and Restic" \
+LABEL summary="Multiarch Velero" \
+    description="Multiarch images for Velero and Restic" \
     name="mylesagray/velero" \
     url="https://github.com/mylesagray/velero-multiarch" \
     maintainer="Myles Gray <mg@mylesgray.com>"
