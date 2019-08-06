@@ -1,36 +1,13 @@
-# RPI Ark
+# Velero Multiarch Image with Restic
 
-* Master: [![pipeline status](https://gitlab.com/zeiot/rpi-ark/badges/master/pipeline.svg)](https://gitlab.com/zeiot/rpi-ark/commits/master)
+Multiarch Docker image for [Velero](https://velero.io).
 
-Docker image of [Ark][] to use on a [Raspberry PI][].
+Includes `amd64`, `arm32v7` and `arm64`.
 
-Configure binfmt-support on the Docker host (works locally or remotely, i.e: using boot2docker):
+Available on Docker Hub `mylesagray/velero`.
 
-    $ docker run --rm --privileged multiarch/qemu-user-static:register --reset
+You can build your own images using the `Makefile`:
 
-Then you can run an armhf image from your x86_64 Docker host :
-
-    $ make run version=1.0
-
-Or build :
-
-    $ make build version=1.0
-
-
-## License
-
-See [LICENSE](LICENSE) for the complete license.
-
-
-## Changelog
-
-A [ChangeLog.md](ChangeLog.md) is available.
-
-
-## Contact
-
-Nicolas Lamirault <nicolas.lamirault@gmail.com>
-
-
-[Raspberry PI]: https://www.raspberrypi.org/
-[Ark]: https://github.com/heptio/ark
+```sh
+$ NAMESPACE=mylesagray IMAGE=velero make all
+```

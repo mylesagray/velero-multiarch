@@ -1,4 +1,4 @@
-# Copyright (C) 2016-2018 Nicolas Lamirault <nicolas.lamirault@gmail.com>
+# Copyright (C) 2019 Myles Gray <mg@mylesgray.com>
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,50 +12,100 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-APP=mylesagray
+NAMESPACE?=mylesagray
+IMAGE?=velero
 
-NAMESPACE=$(APP)
-IMAGE=velero
+REGISTRY_IMAGE?=$(NAMESPACE)/$(IMAGE)
 
-REGISTRY_IMAGE ?= $(NAMESPACE)/$(IMAGE)
+BASE_IMAGE=ubuntu
+BASE_IMAGE_TAG=bionic
 
-NO_COLOR=\033[0m
-OK_COLOR=\033[32;01m
-ERROR_COLOR=\033[31;01m
-WARN_COLOR=\033[33;01m
+ARCHS?=amd64 arm32v7 arm64v8
+QEMU_ARCHS?=arm aarch64
 
-DOCKER = docker
+.PHONY: qemu wrap push manifest clean
 
-arch ?= arm
-
-ifneq ($(version),)
-	VERSION := $(shell grep ' VERSION' ${version}/Dockerfile.${arch}|awk -F" " '{ print $$3 }')
-endif
-
-all: help
+all:
+	make qemu
+	make wrap
+	make build
+	make push
+	make manifest
+	make clean
 
 help:
-	@echo -e "$(OK_COLOR)==== $(APP) / $(IMAGE) ====$(NO_COLOR)"
-	@echo -e "$(WARN_COLOR)- build version=xx   : Make the Docker image$(NO_COLOR)"
-	@echo -e "$(WARN_COLOR)- publish version=xx : Publish the image$(NO_COLOR)"
-	@echo -e "optional argument: arch=$(arch)"
+	@echo -e "- all : Build, push and build manifests"
+	@echo -e "- qemu : Downloads needed qemu static files and preps host"
+	@echo -e "- wrap : Creates a wrapper around the base image with qemu added"
+	@echo -e "- build : Make the Docker images"
+	@echo -e "- push : Publish the images"
+	@echo -e "- manifest : Build multiarch manifest"
+	@echo -e "- clean : Clean build artifacts"
 	@echo -e "Registry: $(REGISTRY_IMAGE)"
 
-.PHONY: build
 build:
-	@echo -e "$(OK_COLOR)[$(APP)] build $(REGISTRY_IMAGE):v$(VERSION)-$(arch)$(NO_COLOR)"
-	@$(DOCKER) build --rm -t $(REGISTRY_IMAGE):v${VERSION}-$(arch) $(version) -f $(version)/Dockerfile.$(arch)
+	$(foreach arch, $(ARCHS), make build-$(arch);)
 
-.PHONY: run
-run:
-	@echo -e "$(OK_COLOR)[$(APP)] run $(REGISTRY_IMAGE):v$(VERSION)-$(arch)$(NO_COLOR)"
-	@$(DOCKER) run --rm=true -p 9090:9090 $(REGISTRY_IMAGE):v$(VERSION)-$(arch)
+build-%:
+	$(eval ARCH := $*)
+	docker build --rm \
+	--build-arg ARCH=$(ARCH) \
+	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
+	-f Dockerfile.$* \
+	-t $(REGISTRY_IMAGE):latest-$* .
 
-.PHONY: login
-login:
-	@$(DOCKER) login
+push:
+	$(foreach arch, $(ARCHS), make push-$(arch);)
 
-.PHONY: publish-arm
-publish:
-	@echo -e "$(OK_COLOR)[$(APP)] Publish $(REGISTRY_IMAGE):v$(VERSION)-$(arch)$(NO_COLOR)"
-	@$(DOCKER) push $(REGISTRY_IMAGE):v$(VERSION)-$(arch)
+push-%:
+	docker push $(REGISTRY_IMAGE):latest-$*
+
+expand-%: # expand architecture variants for manifest
+	@if [ "$*" == "amd64" ] ; then \
+	   echo '--arch $*'; \
+	elif [[ "$*" == *"arm32"* ]] ; then \
+	   echo '--arch arm --variant $*' | cut -c 1-21,27-; \
+	elif [[ "$*" == *"arm64"* ]] ; then \
+	   echo '--arch arm64 --variant arm$*' | cut -c 1-23,29-; \
+	fi
+
+manifest:
+	docker manifest create --amend $(REGISTRY_IMAGE):latest \
+		$(foreach arch, $(ARCHS), $(REGISTRY_IMAGE):latest-$(arch))
+	$(foreach arch, $(ARCHS), \
+	docker manifest annotate $(REGISTRY_IMAGE):latest \
+		$(REGISTRY_IMAGE):latest-$(arch) $(shell make expand-$(arch));)
+	docker manifest push $(REGISTRY_IMAGE):latest
+
+qemu:
+	$(foreach arch, $(QEMU_ARCHS), make qemu-$(arch);)
+
+qemu-%:
+	-docker run --rm --privileged multiarch/qemu-user-static:register --reset 
+	cd tmp && \
+	curl -L -o qemu-$*-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0-5/qemu-$*-static.tar.gz && \
+	tar xzf qemu-$*-static.tar.gz && \
+	cp qemu-$*-static ../qemu/
+
+wrap:
+	$(foreach arch, $(ARCHS), make wrap-$(arch);)
+
+wrap-amd64:
+	docker pull amd64/$(BASE_IMAGE):$(BASE_IMAGE_TAG)
+	docker tag amd64/$(BASE_IMAGE):$(BASE_IMAGE_TAG) $(BASE_IMAGE):amd64
+
+wrap-%:
+	$(eval ARCH := $*)
+	docker build \
+		--build-arg ARCH=$(ARCH) \
+		--build-arg BASE=$(ARCH)/$(BASE_IMAGE):$(BASE_IMAGE_TAG) \
+		-t $(BASE_IMAGE):$(ARCH) qemu
+
+clean:
+	-docker rm -fv $$(docker ps -a -q -f status=exited)
+	-docker rmi -f $$(docker images -q -f dangling=true)
+	-$(foreach arch, $(ARCHS), docker rmi -f $(arch)/$(BASE_IMAGE):$(BASE_IMAGE_TAG);)
+	-$(foreach arch, $(ARCHS), docker rmi -f $(BASE_IMAGE):$(arch);)
+	-rm -rf qemu/qemu-*-static
+	-docker rmi -f multiarch/qemu-user-static:register
+	-docker rmi -f $$(docker images --format '{{.Repository}}:{{.Tag}}' | grep $(REGISTRY_IMAGE))
