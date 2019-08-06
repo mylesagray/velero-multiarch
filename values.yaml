@@ -1,0 +1,28 @@
+image:
+  repository: mylesagray/velero
+  tag: latest
+configuration:
+  provider: aws
+  backupStorageLocation:
+    name: aws
+    bucket: velero
+    config:
+      region: minio
+      s3ForcePathStyle: true
+      s3Url: https://minio.your.domain
+  volumeSnapshotLocation:
+    name: aws
+    config:
+      region: eu-west-1
+credentials:
+  useSecret: true
+  secretContents:
+    cloud: |
+      [default]
+      aws_access_key_id = minio
+      aws_secret_access_key = minio123
+snapshotsEnabled: false
+deployRestic: true
+restic:
+  podVolumePath: /var/lib/kubelet/pods
+  privileged: true
