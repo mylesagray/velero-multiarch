@@ -1,5 +1,7 @@
 # Velero Multiarch Image with Restic
 
+[![Build Status](https://travis-ci.org/mylesagray/velero-multiarch.svg?branch=master)](https://travis-ci.org/mylesagray/velero-multiarch)
+
 Multiarch Docker image for [Velero](https://velero.io).
 
 Includes `amd64`, `arm32v7` and `arm64`.
