@@ -3,25 +3,24 @@ sudo: required
 addons:
   apt:
     packages:
-      - docker-ce # use experimental features
-
+    - docker-ce
 services:
-  - docker
-
+- docker
 before_install:
-  - docker --version  # document the version travis is using
-  - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
-  - mkdir -p $HOME/.docker && echo '{"experimental":"enabled"}' | tee $HOME/.docker/config.json
-  - sudo service docker restart
-
+- docker --version
+- echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
+- mkdir -p $HOME/.docker && echo '{"experimental":"enabled"}' | tee $HOME/.docker/config.json
+- sudo service docker restart
 script:
-  - make qemu
-  - make wrap
-  - make build
-
+- make qemu
+- make wrap
+- make build
 after_success:
- - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
-     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ;
-     make push ;
-     make manifest ;
-   fi
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then echo "$DOCKER_PASSWORD" | docker login
+  -u "$DOCKER_USERNAME" --password-stdin ; make push ; make manifest ; fi
+notifications:
+  slack:
+    rooms:
+      secure: GCBpoA9jPwq0gdQ/5wEdNR8PwpZ+O6gkiQbaisLPrDzk/iZYi/cbr7gUE3A/NWWq+KQsNGPSNqOBuxpLLHEo8sCh9Yi0j1eGq3SPgab6m3NTORni7o9pasG32SkS7zmfqjhlF/jGCfmjPkR//FK+juKGryFbsLmlif4Qsc7dULPOGPViRiLyiKfwdSAUxiE6GOcCHjh53cK8vN5Rgq/owea6/iwY+950yNFBf8ubG58aupfEL51iFNvct0cQqTnEUQWak+4GVzIi7thicxQRGvxfxKedIp1TKxqKbK8b6tRuTXdEEgGHVI6EUMpoNqLkv3Oq2XXukgOAag5TIuHyKBNQrHg0B4ktD0Sc8eELl1jH9RUXynjAeDywSoeQzCgzscCwAEqS/uj8++ax28PSwvxmawYrqNaYLvDh6d2DiZ1L14riOqu1JxUp8UkCu8Q8/sisqqzi26JYVIsooTHWYTT0zdeuTAZbqrQ1LXEdXUHKoYedhGKAe4QKaLNMauqfkvEULK/GBJMer2DvrssptM2ZvMnPce/MGbc/cmPraQOm276KXwM+AJeMZdzUdMKqYt5EYMd7ijj9GRAYrSWNiQhpdMCo/Pvct2Cv8ipV/M5zRsQ/bZMGvtsZdGQMvkZRUQK1BDqc7sB1JWWpXAIKYWJmhkP3XnO98/1xdbIjWSU=
+    on_success: change
+    on_failure: always

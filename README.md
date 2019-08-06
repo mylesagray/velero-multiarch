@@ -11,10 +11,10 @@ Available on Docker Hub at [`mylesagray/velero`](https://cloud.docker.com/reposi
 
 ## Using
 
-If you want to use this with the [Helm chart](https://github.com/helm/charts/tree/master/stable/velero/) adjust the [values.yaml](./values.yaml) file to suit your environment and run:
+If you want to use this with the [Helm chart](https://github.com/helm/charts/tree/master/stable/velero/) adjust the [values.yaml](helm/values.yaml) file to suit your environment and run:
 
 ```sh
-helm install stable/velero --name velero --namespace velero -f values.yaml
+helm install stable/velero --name velero --namespace velero -f helm/values.yaml
 ```
 
 _Note: the above config uses this multiarch image, the chart's settings have snapshots disabled and has the provider set to `aws` as it's required to be populated by the chart - as-is, it is set up for on-prem deployments with Restic for PV backups._
@@ -24,5 +24,5 @@ _Note: the above config uses this multiarch image, the chart's settings have sna
 You can build your own images using the `Makefile`:
 
 ```sh
-REPO=mylesagray IMAGE=velero make all
+REPO=mylesagray IMAGE=velero VELERO_VERSION=v1.0.0 make all
 ```

@@ -20,24 +20,24 @@ ARG BASE
 FROM ${BASE}
 
 LABEL summary="Heptio Velero for ARM" \
-      description="Heptio Velero for ARM devices" \
-      name="mylesagray/velero" \
-      url="https://github.com/mylesagray/arm-velero" \
-      maintainer="Myles Gray <mg@mylesgray.com>"
+    description="Heptio Velero for ARM devices" \
+    name="mylesagray/velero" \
+    url="https://github.com/mylesagray/arm-velero" \
+    maintainer="Myles Gray <mg@mylesgray.com>"
 
-ENV VELERO_VERSION 1.0.0
-ENV ARCH arm
+ARG BIN_ARCH
+ARG VELERO_VERSION
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget bzip2 && \
-    wget --quiet https://github.com/heptio/velero/releases/download/v${VELERO_VERSION}/velero-v${VELERO_VERSION}-linux-${ARCH}.tar.gz && \
-    tar -zxvf velero-v${VELERO_VERSION}-linux-${ARCH}.tar.gz && \
-    rm velero-v${VELERO_VERSION}-linux-${ARCH}.tar.gz && \
-    mv velero-v${VELERO_VERSION}-linux-${ARCH}/velero /velero && \
+    wget --quiet https://github.com/heptio/velero/releases/download/${VELERO_VERSION}/velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
+    tar -zxvf velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
+    rm velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
+    mv velero-${VELERO_VERSION}-linux-${BIN_ARCH}/velero /velero && \
     chmod +x /velero && \
-    wget --quiet https://github.com/restic/restic/releases/download/v0.9.4/restic_0.9.4_linux_${ARCH}.bz2 && \
-    bunzip2 restic_0.9.4_linux_${ARCH}.bz2 && \
-    mv restic_0.9.4_linux_${ARCH} /usr/bin/restic && \
+    wget --quiet https://github.com/restic/restic/releases/download/v0.9.4/restic_0.9.4_linux_${BIN_ARCH}.bz2 && \
+    bunzip2 restic_0.9.4_linux_${BIN_ARCH}.bz2 && \
+    mv restic_0.9.4_linux_${BIN_ARCH} /usr/bin/restic && \
     chmod +x /usr/bin/restic && \
     apt-get remove -y wget bzip2 && \
     rm -rf /var/lib/apt/lists/*

@@ -16,6 +16,9 @@ REPO?=mylesagray
 IMAGE?=velero
 
 REGISTRY_IMAGE?=$(REPO)/$(IMAGE)
+REGISTRY_IMAGE_TAG?=latest
+
+VELERO_VERSION?=v1.0.0
 
 BASE_IMAGE=ubuntu
 BASE_IMAGE_TAG=bionic
@@ -23,7 +26,7 @@ BASE_IMAGE_TAG=bionic
 ARCHS?=amd64 arm32v7 arm64v8
 QEMU_ARCHS?=arm aarch64
 
-.PHONY: qemu wrap push manifest clean
+.PHONY: all qemu wrap build push manifest clean
 
 all:
 	make qemu
@@ -46,19 +49,38 @@ help:
 build:
 	$(foreach arch, $(ARCHS), make build-$(arch);)
 
-build-%:
-	$(eval ARCH := $*)
+build-amd64:
+	$(eval ARCH := amd64)
 	docker build --rm \
-	--build-arg ARCH=$(ARCH) \
 	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
-	-f Dockerfile.$* \
-	-t $(REGISTRY_IMAGE):latest-$* .
+	--build-arg VELERO_VERSION=$(VELERO_VERSION) \
+	--build-arg BIN_ARCH=$(ARCH) \
+	-f Dockerfile \
+	-t $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(ARCH) .
+
+build-arm32v7:
+	$(eval ARCH := arm32v7)
+	docker build --rm \
+	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
+	--build-arg VELERO_VERSION=$(VELERO_VERSION) \
+	--build-arg BIN_ARCH=arm \
+	-f Dockerfile \
+	-t $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(ARCH) .
+
+build-arm64v8:
+	$(eval ARCH := arm64v8)
+	docker build --rm \
+	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
+	--build-arg VELERO_VERSION=$(VELERO_VERSION) \
+	--build-arg BIN_ARCH=arm64 \
+	-f Dockerfile \
+	-t $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(ARCH) .
 
 push:
 	$(foreach arch, $(ARCHS), make push-$(arch);)
 
 push-%:
-	docker push $(REGISTRY_IMAGE):latest-$*
+	docker push $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$*
 
 expand-%: # expand architecture variants for manifest
 	@if [ "$*" == "amd64" ] ; then \
@@ -70,21 +92,22 @@ expand-%: # expand architecture variants for manifest
 	fi
 
 manifest:
-	docker manifest create --amend $(REGISTRY_IMAGE):latest \
-		$(foreach arch, $(ARCHS), $(REGISTRY_IMAGE):latest-$(arch))
+	docker manifest create --amend $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG) \
+		$(foreach arch, $(ARCHS), $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(arch))
 	$(foreach arch, $(ARCHS), \
-	docker manifest annotate $(REGISTRY_IMAGE):latest \
-		$(REGISTRY_IMAGE):latest-$(arch) $(shell make expand-$(arch));)
-	docker manifest push $(REGISTRY_IMAGE):latest
+	docker manifest annotate $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG) \
+		$(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(arch) $(shell make expand-$(arch));)
+	docker manifest push $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)
 
 qemu:
 	$(foreach arch, $(QEMU_ARCHS), make qemu-$(arch);)
 
 qemu-%:
 	-docker run --rm --privileged multiarch/qemu-user-static:register --reset 
+	mkdir -p build && cd build/ && \
 	curl -L -o qemu-$*-static.tar.gz https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0-5/qemu-$*-static.tar.gz && \
 	tar xzf qemu-$*-static.tar.gz && \
-	mv qemu-$*-static qemu/
+	cd ../
 
 wrap:
 	$(foreach arch, $(ARCHS), make wrap-$(arch);)
@@ -98,13 +121,13 @@ wrap-%:
 	docker build \
 		--build-arg ARCH=$(ARCH) \
 		--build-arg BASE=$(ARCH)/$(BASE_IMAGE):$(BASE_IMAGE_TAG) \
-		-t $(BASE_IMAGE):$(ARCH) qemu
+		-t $(BASE_IMAGE):$(ARCH) -f qemu/Dockerfile .
 
 clean:
 	-docker rm -fv $$(docker ps -a -q -f status=exited)
 	-docker rmi -f $$(docker images -q -f dangling=true)
 	-$(foreach arch, $(ARCHS), docker rmi -f $(arch)/$(BASE_IMAGE):$(BASE_IMAGE_TAG);)
 	-$(foreach arch, $(ARCHS), docker rmi -f $(BASE_IMAGE):$(arch);)
-	-rm -rf qemu-*-static.tar.gz qemu/qemu-*-static
+	-rm -rf build/
 	-docker rmi -f multiarch/qemu-user-static:register
 	-docker rmi -f $$(docker images --format '{{.Repository}}:{{.Tag}}' | grep $(REGISTRY_IMAGE))

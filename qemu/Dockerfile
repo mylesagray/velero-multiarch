@@ -1,3 +1,3 @@
 ARG BASE 
 FROM ${BASE}
-COPY qemu-*-static /usr/bin/
+COPY build/qemu-*-static /usr/bin/
