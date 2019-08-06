@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/mylesagray/velero-multiarch.svg?branch=master)](https://travis-ci.org/mylesagray/velero-multiarch)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mylesagray/velero)
 
-Multiarch Docker image for [Velero](https://velero.io) with Restic, includes support for `amd64`, `arm32v7` and `arm64` architectures.
+Multiarch Docker image for [Velero](https://velero.io) with Restic, includes support for `amd64`, `arm32v6`, `arm32v7` and `arm64` architectures based on the `alpine` image.
 
 Available on Docker Hub at [`mylesagray/velero`](https://cloud.docker.com/repository/docker/mylesagray/velero).
 
@@ -24,5 +24,5 @@ _Note: the above config uses this multiarch image, the chart's settings have sna
 You can build your own images using the `Makefile`:
 
 ```sh
-REPO=mylesagray IMAGE=velero VELERO_VERSION=v1.0.0 make all
+REPO=mylesagray IMAGE=velero VELERO_VERSION=v1.0.0 RESTIC_VERSION=0.9.5 make all
 ```

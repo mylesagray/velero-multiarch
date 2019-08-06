@@ -1,6 +1,6 @@
 image:
   repository: mylesagray/velero
-  tag: latest
+  tag: alpine
 configuration:
   provider: aws
   backupStorageLocation:
@@ -9,7 +9,7 @@ configuration:
     config:
       region: minio
       s3ForcePathStyle: true
-      s3Url: https://minio.your.domain
+      s3Url: http://minio.your.domain:9001
   volumeSnapshotLocation:
     name: aws
     config:

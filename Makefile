@@ -16,14 +16,15 @@ REPO?=mylesagray
 IMAGE?=velero
 
 REGISTRY_IMAGE?=$(REPO)/$(IMAGE)
-REGISTRY_IMAGE_TAG?=latest
+REGISTRY_IMAGE_TAG?=alpine
 
 VELERO_VERSION?=v1.0.0
+RESTIC_VERSION?=0.9.5
 
-BASE_IMAGE=ubuntu
-BASE_IMAGE_TAG=bionic
+BASE_IMAGE=alpine
+BASE_IMAGE_TAG=latest
 
-ARCHS?=amd64 arm32v7 arm64v8
+ARCHS?=amd64 arm32v6 arm32v7 arm64v8
 QEMU_ARCHS?=arm aarch64
 
 .PHONY: all qemu wrap build push manifest clean
@@ -54,15 +55,17 @@ build-amd64:
 	docker build --rm \
 	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
 	--build-arg VELERO_VERSION=$(VELERO_VERSION) \
+	--build-arg RESTIC_VERSION=$(RESTIC_VERSION) \
 	--build-arg BIN_ARCH=$(ARCH) \
 	-f Dockerfile \
 	-t $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(ARCH) .
 
-build-arm32v7:
-	$(eval ARCH := arm32v7)
+build-arm32%:
+	$(eval ARCH := arm32$*)
 	docker build --rm \
 	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
 	--build-arg VELERO_VERSION=$(VELERO_VERSION) \
+	--build-arg RESTIC_VERSION=$(RESTIC_VERSION) \
 	--build-arg BIN_ARCH=arm \
 	-f Dockerfile \
 	-t $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(ARCH) .
@@ -72,6 +75,7 @@ build-arm64v8:
 	docker build --rm \
 	--build-arg BASE=$(BASE_IMAGE):$(ARCH) \
 	--build-arg VELERO_VERSION=$(VELERO_VERSION) \
+	--build-arg RESTIC_VERSION=$(RESTIC_VERSION) \
 	--build-arg BIN_ARCH=arm64 \
 	-f Dockerfile \
 	-t $(REGISTRY_IMAGE):$(REGISTRY_IMAGE_TAG)-$(ARCH) .

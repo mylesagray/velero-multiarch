@@ -12,35 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# VERSION 1.0.0
 # AUTHOR:         Myles Gray <mg@mylesgray.com>
 # DESCRIPTION:    mylesagray/velero
 
 ARG BASE
 FROM ${BASE}
 
-LABEL summary="Heptio Velero for ARM" \
-    description="Heptio Velero for ARM devices" \
+LABEL summary="Multiarch Heptio Velero" \
+    description="Multiarch images for Heptio Velero and Restic" \
     name="mylesagray/velero" \
-    url="https://github.com/mylesagray/arm-velero" \
+    url="https://github.com/mylesagray/velero-multiarch" \
     maintainer="Myles Gray <mg@mylesgray.com>"
 
 ARG BIN_ARCH
 ARG VELERO_VERSION
+ARG RESTIC_VERSION
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates wget bzip2 && \
+RUN apk update && \
+    apk upgrade && \
+    apk add ca-certificates && \
+    rm -rf /var/cache/apk/* && \
+    update-ca-certificates 2>/dev/null || true
+
+RUN apk add --no-cache --virtual .build-deps tar wget bzip2 && \
     wget --quiet https://github.com/heptio/velero/releases/download/${VELERO_VERSION}/velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
     tar -zxvf velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
     rm velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
     mv velero-${VELERO_VERSION}-linux-${BIN_ARCH}/velero /velero && \
     chmod +x /velero && \
-    wget --quiet https://github.com/restic/restic/releases/download/v0.9.4/restic_0.9.4_linux_${BIN_ARCH}.bz2 && \
-    bunzip2 restic_0.9.4_linux_${BIN_ARCH}.bz2 && \
-    mv restic_0.9.4_linux_${BIN_ARCH} /usr/bin/restic && \
+    wget --quiet https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${BIN_ARCH}.bz2 && \
+    bunzip2 restic_${RESTIC_VERSION}_linux_${BIN_ARCH}.bz2 && \
+    mv restic_${RESTIC_VERSION}_linux_${BIN_ARCH} /usr/bin/restic && \
     chmod +x /usr/bin/restic && \
-    apt-get remove -y wget bzip2 && \
-    rm -rf /var/lib/apt/lists/*
+    apk del .build-deps
 
 USER nobody:nobody
 
