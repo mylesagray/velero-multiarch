@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NAMESPACE?=mylesagray
+REPO?=mylesagray
 IMAGE?=velero
 
-REGISTRY_IMAGE?=$(NAMESPACE)/$(IMAGE)
+REGISTRY_IMAGE?=$(REPO)/$(IMAGE)
 
 BASE_IMAGE=ubuntu
 BASE_IMAGE_TAG=bionic
