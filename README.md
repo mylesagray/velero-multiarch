@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/mylesagray/velero-multiarch.svg?branch=master)](https://travis-ci.org/mylesagray/velero-multiarch)
 ![Docker Pulls](https://img.shields.io/docker/pulls/mylesagray/velero)
 
-Multiarch Docker image for [Velero](https://velero.io) with Restic, includes support for `amd64`, `arm32v6`, `arm32v7` and `arm64` architectures based on the `alpine` image.
+Multiarch Docker image for [Velero](https://velero.io) with Restic, includes support for `amd64`, `arm32v7` and `arm64` architectures.
 
 Available on Docker Hub at [`mylesagray/velero`](https://cloud.docker.com/repository/docker/mylesagray/velero).
 

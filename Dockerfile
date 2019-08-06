@@ -28,13 +28,8 @@ ARG BIN_ARCH
 ARG VELERO_VERSION
 ARG RESTIC_VERSION
 
-RUN apk update && \
-    apk upgrade && \
-    apk add ca-certificates && \
-    rm -rf /var/cache/apk/* && \
-    update-ca-certificates 2>/dev/null || true
-
-RUN apk add --no-cache --virtual .build-deps tar wget bzip2 && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates wget bzip2 && \
     wget --quiet https://github.com/heptio/velero/releases/download/${VELERO_VERSION}/velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
     tar -zxvf velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
     rm velero-${VELERO_VERSION}-linux-${BIN_ARCH}.tar.gz && \
@@ -44,7 +39,8 @@ RUN apk add --no-cache --virtual .build-deps tar wget bzip2 && \
     bunzip2 restic_${RESTIC_VERSION}_linux_${BIN_ARCH}.bz2 && \
     mv restic_${RESTIC_VERSION}_linux_${BIN_ARCH} /usr/bin/restic && \
     chmod +x /usr/bin/restic && \
-    apk del .build-deps
+    apt-get remove -y wget bzip2 && \
+    rm -rf /var/lib/apt/lists/*
 
 USER nobody:nobody
 

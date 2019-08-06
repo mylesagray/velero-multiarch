@@ -16,15 +16,15 @@ REPO?=mylesagray
 IMAGE?=velero
 
 REGISTRY_IMAGE?=$(REPO)/$(IMAGE)
-REGISTRY_IMAGE_TAG?=alpine
+REGISTRY_IMAGE_TAG?=latest
 
 VELERO_VERSION?=v1.0.0
 RESTIC_VERSION?=0.9.5
 
-BASE_IMAGE=alpine
-BASE_IMAGE_TAG=latest
+BASE_IMAGE=ubuntu
+BASE_IMAGE_TAG=bionic
 
-ARCHS?=amd64 arm32v6 arm32v7 arm64v8
+ARCHS?=amd64 arm32v7 arm64v8
 QEMU_ARCHS?=arm aarch64
 
 .PHONY: all qemu wrap build push manifest clean
