@@ -1,9 +1,9 @@
 sudo: required
 services:
-  - docker # this tells Travis to start the service
+  - docker
 
 before_install:
-  - docker --version  # document the version Travis is using (currently 17.x, which is way too old)
+  - docker --version 
   - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json # try to use manifests
   - mkdir -p $HOME/.docker
   - echo '{"experimental":"enabled"}' | tee $HOME/.docker/config.json # needed to use docker manifest
@@ -12,7 +12,7 @@ before_install:
 install:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset # setup QEMU for cross-builds
 
-script: # Since I want to move this to Azure DevOps, all the smarts are in a Makefile
+script:
   - make qemu
   - make wrap
   - make build
@@ -20,4 +20,4 @@ script: # Since I want to move this to Azure DevOps, all the smarts are in a Mak
 after_success: # these can fail without breaking the build
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - make push
-  - make manifest # doesn't work on Travis since they are only using Docker 17.x
+  - make manifest
