@@ -7,21 +7,21 @@ addons:
 
 services:
   - docker
+
 before_install:
   - docker --version  # document the version travis is using
   - echo '{"experimental":true}' | sudo tee /etc/docker/daemon.json
   - mkdir -p $HOME/.docker && echo '{"experimental":"enabled"}' | tee $HOME/.docker/config.json
   - sudo service docker restart
 
-jobs:
-  include:
-    - stage: build
-      script:
-        - make qemu
-        - make wrap
-        - make build
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-        - make push
-    - stage: manifest
-      script:
-        - make manifest
+script:
+  - make qemu
+  - make wrap
+  - make build
+
+after_success:
+ - if [[ "$TRAVIS_BRANCH" == "master" ]]; then
+     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ;
+     make push ;
+     make manifest ;
+   fi
