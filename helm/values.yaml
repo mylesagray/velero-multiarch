@@ -26,3 +26,10 @@ deployRestic: true
 restic:
   podVolumePath: /var/lib/kubelet/pods
   privileged: true
+configMaps:
+  restic-restore-action-config:
+    labels:
+      velero.io/plugin-config: ""
+      velero.io/restic: RestoreItemAction
+    data:
+      image: mylesagray/velero-restic-restore-helper:latest
