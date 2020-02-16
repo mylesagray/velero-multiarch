@@ -24,5 +24,5 @@ _Note: the above config uses this multiarch image, the chart's settings have sna
 You can build your own images using the `Makefile`:
 
 ```sh
-make REPO=mylesagray IMAGE=velero VELERO_VERSION=v1.0.0 RESTIC_VERSION=0.9.5 all
+make REPO=mylesagray IMAGE=velero VELERO_VERSION=v1.1.0 RESTIC_VERSION=0.9.5 all
 ```
